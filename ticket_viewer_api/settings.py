@@ -132,6 +132,6 @@ STATIC_URL = '/static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-ZENDESK_API_URL = ".zendesk.com/api/v2/search?query="
-ZENDESK_API_QUERY = "type:ticket&sort_by=updated_at&sort_order=desc"
+ZENDESK_API_URL = "https://<<subdomain>>.zendesk.com/api/v2/tickets?"
+ZENDESK_API_QUERY = "sort_by=updated_at&sort_order=desc"
 FIELDS_TO_SEND = "id,subject,description,requester_id,assignee_id,status,created_at,updated_at,tags"

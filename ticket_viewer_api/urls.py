@@ -19,6 +19,6 @@ from tickets import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('connect/', views.Connect.as_view()),
+    path('tickets/', views.Tickets.as_view()),
 
 ]

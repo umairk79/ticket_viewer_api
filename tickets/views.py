@@ -6,20 +6,29 @@ from django.conf import settings
 from . import utils
 
 
-ZENDESK_API_URL = getattr(settings, "ZENDESK_API_URL", "")
-ZENDESK_API_QUERY = getattr(settings, "ZENDESK_API_QUERY", "")
+# Main /tickets django view class
+class Tickets(APIView):
+    # Get downstream urls and query params from settings.py configuration file
+    ZENDESK_API_URL = getattr(settings, "ZENDESK_API_URL", "")
+    ZENDESK_API_QUERY = getattr(settings, "ZENDESK_API_QUERY", "")
 
-
-class Connect(APIView):
-
+    # implementation for post request
     def post(self, request):
-
-
+        """
+        This post call internally calls the zendesk tickets api to fetch tickets.
+        Used Email and Password for basic auth.
+        Takes subdomain from the user.
+        Takes page number as a request parameter for pagination requests.
+        Handles all types of exceptions. Returns relevant error responses based on scenarios.
+        Return success response based on the fields specified in the global settings configuration file.
+        """
         request = request.data['data']
-        email, password, subdomain = request['email'], request['password'], request['subdomain']
+        email, password, subdomain, page_number = request['email'], request['password'], request['subdomain'], request['page']
+        page_number_query = "&page=" + str(page_number)
+        ZENDESK_API_URL = self.ZENDESK_API_URL.replace("<<subdomain>>", subdomain)
 
         try:
-            response = requests.get("https://" + subdomain + ZENDESK_API_URL + ZENDESK_API_QUERY, auth=(email, password))
+            response = requests.get(ZENDESK_API_URL + self.ZENDESK_API_QUERY + page_number_query, auth=(email, password))
             response.raise_for_status()
         except requests.exceptions.Timeout:
             return Response({"error": "Timeout while trying to connect with Zendesk"}, status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -36,7 +45,7 @@ class Connect(APIView):
                 return Response(response.json(), status=response.status_code)
             else:
                 return Response({"error": "Unknown error"}, status.HTTP_500_INTERNAL_SERVER_ERROR)
-        except Exception:
+        except Exception as e:
             return Response({"error": "Unknown error"}, status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         try:
